@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ball Battle - Messi vs Ronaldo</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #0b0f19;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #game-container {
+            text-align: center;
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 10px;
+        }
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #1f293d;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        .player-card img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+        }
+        #canvas {
+            background: radial-gradient(circle, #111e38 0%, #050811 100%);
+            border: 3px solid #3b82f6;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        #win-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            display: none;
+            z-index: 10;
+        }
+        #win-screen h1 {
+            color: #facc15;
+            font-size: 28px;
+            text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="header">
+        <div class="player-card">
+            <!-- মেসির অরিজিনাল বা রিয়েল ছবি -->
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b4/Lionel-Messi-Argentina-2022-FIFA-World-Cup_%28cropped%29.jpg" alt="Messi">
+            <div>
+                <div>MESI</div>
+                <div id="messi-score">0</div>
+            </div>
+        </div>
+        <div id="timer">01:00</div>
+        <div class="player-card">
+            <!-- রোনালদোর অরিজিনাল বা রিয়েল ছবি -->
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg" alt="Ronaldo">
+            <div>
+                <div>RONALDO</div>
+                <div id="ronaldo-score">0</div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="canvas" width="360" height="360"></canvas>
+
+    <div class="controls">
+        <button onclick="startGame()">START BATTLE</button>
+        <button onclick="pauseGame()">PAUSE</button>
+        <button onclick="resetGame()">RESET</button>
+    </div>
+
+    <!-- উইনার ঘোষণা স্ক্রিন -->
+    <div id="win-screen">
+        <h1 id="winner-text">WINNER!</h1>
+        <button onclick="resetGame()">NEW ROUND (PLAY AGAIN)</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let messiScore = 0;
+    let ronaldoScore = 0;
+    let gameInterval;
+    let timeLeft = 60;
+    let isPlaying = false;
+
+    const messiScoreEl = document.getElementById('messi-score');
+    const ronaldoScoreEl = document.getElementById('ronaldo-score');
+    const winScreen = document.getElementById('win-screen');
+    const winnerText = document.getElementById('winner-text');
+
+    function drawTable() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // সেন্টার সার্কেল
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 40, 0, Math.PI * 2);
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // গোল পকেট (নিচে)
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height - 20, 25, 0, Math.PI, true);
+        ctx.strokeStyle = '#ec4899';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+
+    function startGame() {
+        if (isPlaying) return;
+        isPlaying = true;
+        winScreen.style.display = 'none';
+        messiScore = 0;
+        ronaldoScore = 0;
+        timeLeft = 60;
+        updateScores();
+        
+        drawTable();
+
+        // গেম লুপ বা স্কোর বাড়ার ডেমো সিমুলেশন
+        gameInterval = setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                document.getElementById('timer').innerText = `00:${timeLeft < 10 ? '0' : ''}${timeLeft}`;
+                
+                // র্যান্ডম স্কোর আপডেট (আপনার গেমের ফিজিক্সের সাথে যুক্ত করবেন)
+                if (Math.random() > 0.7) {
+                    if (Math.random() > 0.5) messiScore++;
+                    else ronaldoScore++;
+                    updateScores();
+                }
+            } else {
+                endGame();
+            }
+        }, 1000);
+    }
+
+    function updateScores() {
+        messiScoreEl.innerText = messiScore;
+        ronaldoScoreEl.innerText = ronaldoScore;
+    }
+
+    function pauseGame() {
+        clearInterval(gameInterval);
+        isPlaying = false;
+    }
+
+    function resetGame() {
+        clearInterval(gameInterval);
+        isPlaying = false;
+        messiScore = 0;
+        ronaldoScore = 0;
+        timeLeft = 60;
+        updateScores();
+        winScreen.style.display = 'none';
+        document.getElementById('timer').innerText = '01:00';
+        drawTable();
+    }
+
+    function endGame() {
+        clearInterval(gameInterval);
+        isPlaying = false;
+
+        // সঠিক উইনারের নাম ঘোষণা
+        if (messiScore > ronaldoScore) {
+            winnerText.innerText = `LIONEL MESSI WINS!\nScore: ${messiScore} - ${ronaldoScore}`;
+        } else if (ronaldoScore > messiScore) {
+            winnerText.innerText = `CRISTIANO RONALDO WINS!\nScore: ${ronaldoScore} - ${messiScore}`;
+        } else {
+            winnerText.innerText = `IT'S A DRAW!\nScore: ${messiScore} - ${ronaldoScore}`;
+        }
+
+        winScreen.style.display = 'flex';
+    }
+
+    // প্রথম লোডের সময় টেবিল একে দেওয়া
+    drawTable();
+</script>
+
+</body>
+</html>
